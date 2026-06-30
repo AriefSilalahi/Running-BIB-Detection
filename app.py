@@ -12,7 +12,7 @@ st.write("By.Arief Daniel A.Silalahi")
 
 @st.cache_resource
 def load_models():
-    model = YOLO('/content/runs/detect/train/weights/best.pt') 
+    model = YOLO('best.pt') 
     reader = easyocr.Reader(['en'], gpu=True)
     return model, reader
 
