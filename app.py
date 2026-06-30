@@ -27,7 +27,7 @@ if st.button("Cari Foto Saya!"):
         st.info("Memindai seluruh foto di dataset... Mohon tunggu ⏳")
         
         image_files = []
-        for root, dirs, files in os.walk('/content'):
+        for root, dirs, files in os.walk('./dataset_lokal'):
             if 'runs' in root: continue
             for file in files:
                 if file.lower().endswith(('.jpg', '.jpeg', '.png')):
