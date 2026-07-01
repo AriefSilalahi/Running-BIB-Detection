@@ -2,10 +2,25 @@ import streamlit as st
 import cv2
 import easyocr
 import os
+import time  # TAMBAHAN: Diperlukan untuk fitur timer kecepatan AI
 from ultralytics import YOLO
 from PIL import Image
 
 st.set_page_config(page_title="Running Bib Finder", layout="wide")
+
+# --- TAMBAHAN: Fitur Sidebar Informasi Elegan & Profesional ---
+with st.sidebar:
+    st.markdown("### 🏃‍♂️ Running BIB System")
+    # Menggunakan gambar estetik pelari sebagai pemanis sidebar
+    st.image("https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500", use_container_width=True)
+    st.markdown("---")
+    st.markdown("#### 👤 Profil Developer")
+    st.write("**Nama:** Arief Daniel A. Silalahi")
+    st.write("**NIM:** 2255301019")
+    st.markdown("---")
+    st.markdown("#### 🛠️ Tech Stack")
+    st.code("YOLOv11 Nano\nEasyOCR\nStreamlit Cloud\nSession State Memory", language="text")
+
 st.title("🏃‍♂️ Running Bib Finder")
 st.write("Sistem pencarian dokumentasi foto lari otomatis berbasis YOLOv11 & OCR.")
 st.write("By. Arief Daniel A. Silalahi")
@@ -17,6 +32,8 @@ if 'last_query' not in st.session_state:
     st.session_state.last_query = ""
 if 'searched' not in st.session_state:
     st.session_state.searched = False
+if 'execution_time' not in st.session_state:  # TAMBAHAN: Memori penyimpan durasi scan
+    st.session_state.execution_time = 0.0
 
 @st.cache_resource
 def load_models():
@@ -33,6 +50,9 @@ if st.button("Cari Foto Saya!"):
     
     if search_query:
         st.info("Memindai seluruh foto di dataset... Mohon tunggu ⏳")
+        
+        # TAMBAHAN: Mulai hitung stopwatch pemindaian
+        start_time = time.time()
         
         # Reset memori setiap kali tombol cari diklik baru
         st.session_state.found_photos = []
@@ -74,8 +94,16 @@ if st.button("Cari Foto Saya!"):
                     if match_found:
                         break 
         
+        # TAMBAHAN: Hentikan stopwatch dan simpan hasilnya ke memori state
+        end_time = time.time()
+        st.session_state.execution_time = end_time - start_time
+        
         # Simpan hasil pencarian ke dalam memori session_state
         st.session_state.found_photos = found_photos
+        
+        # TAMBAHAN: Efek Selebrasi Balon Terbang saat data sukses ditemukan
+        if found_photos:
+            st.balloons()
                         
     else:
         st.warning("Silakan masukkan nomor bib terlebih dahulu.")
@@ -84,6 +112,10 @@ if st.button("Cari Foto Saya!"):
 if st.session_state.searched:
     if st.session_state.found_photos:
         st.success(f"Yeay! Ditemukan {len(st.session_state.found_photos)} foto untuk pelari nomor {st.session_state.last_query} 🎉")
+        
+        # TAMBAHAN: Menampilkan teks indikator kecepatan pemindaian AI
+        st.caption(f"⚡ **Kecepatan AI:** Seluruh berkas dataset lokal selesai dipindai dalam waktu **{st.session_state.execution_time:.2f} detik**.")
+        
         cols = st.columns(3)
         for i, photo_path in enumerate(st.session_state.found_photos):
             with cols[i % 3]:
@@ -101,3 +133,4 @@ if st.session_state.searched:
                     )
     else:
         st.error(f"Maaf, foto dengan nomor bib '{st.session_state.last_query}' tidak ditemukan setelah memindai seluruh dataset.")
+        st.caption(f"⚡ **Kecepatan AI:** Proses pemindaian folder selesai dalam **{st.session_state.execution_time:.2f} detik**.")
