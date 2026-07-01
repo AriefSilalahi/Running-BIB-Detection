@@ -6,9 +6,17 @@ from ultralytics import YOLO
 from PIL import Image
 
 st.set_page_config(page_title="Running Bib Finder", layout="wide")
-st.title("🏃 Running BIB Finder")
+st.title("🏃‍♂️ Running Bib Finder")
 st.write("Sistem pencarian dokumentasi foto lari otomatis berbasis YOLOv11 & OCR.")
 st.write("By. Arief Daniel A. Silalahi")
+
+# 1. INISIALISASI MEMORI (SESSION STATE) agar data tidak hilang saat klik download
+if 'found_photos' not in st.session_state:
+    st.session_state.found_photos = []
+if 'last_query' not in st.session_state:
+    st.session_state.last_query = ""
+if 'searched' not in st.session_state:
+    st.session_state.searched = False
 
 @st.cache_resource
 def load_models():
@@ -25,6 +33,11 @@ if st.button("Cari Foto Saya!"):
     
     if search_query:
         st.info("Memindai seluruh foto di dataset... Mohon tunggu ⏳")
+        
+        # Reset memori setiap kali tombol cari diklik baru
+        st.session_state.found_photos = []
+        st.session_state.last_query = search_query
+        st.session_state.searched = True
         
         image_files = []
         for root, dirs, files in os.walk('./dataset_lokal'):
@@ -53,7 +66,6 @@ if st.button("Cari Foto Saya!"):
                         text = str(detection[1]).replace(" ", "").strip().upper()
                         conf = detection[2]
                         
-                        # PERBAIKAN: Menggunakan "in" agar lebih fleksibel membaca teks yang menempel
                         if search_query in text and conf > 0.20:
                             found_photos.append(img_path)
                             match_found = True
@@ -61,25 +73,31 @@ if st.button("Cari Foto Saya!"):
                             
                     if match_found:
                         break 
-                            
-        if found_photos:
-            st.success(f"Yeay! Ditemukan {len(found_photos)} foto untuk pelari nomor {search_query} 🎉")
-            cols = st.columns(3)
-            for i, photo_path in enumerate(found_photos):
-                with cols[i % 3]:
-                    # 1. Menampilkan foto di web
-                    st.image(Image.open(photo_path), use_container_width=True) 
-                    
-                    # 2. Fitur Tambahan: Tombol Download Foto
-                    with open(photo_path, "rb") as file:
-                        st.download_button(
-                            label="📥 Download Foto",
-                            data=file,
-                            file_name=os.path.basename(photo_path),
-                            mime="image/jpeg",
-                            key=f"download_{i}"  # Key unik berdasarkan indeks perulangan
-                        )
-        else:
-            st.error("Maaf, foto dengan nomor bib tersebut tidak ditemukan setelah memindai seluruh dataset.")
+        
+        # Simpan hasil pencarian ke dalam memori session_state
+        st.session_state.found_photos = found_photos
+                        
     else:
         st.warning("Silakan masukkan nomor bib terlebih dahulu.")
+
+# 2. LOGIKA MENAMPILKAN HASIL (Ditaruh di luar tombol cari, membaca dari memori)
+if st.session_state.searched:
+    if st.session_state.found_photos:
+        st.success(f"Yeay! Ditemukan {len(st.session_state.found_photos)} foto untuk pelari nomor {st.session_state.last_query} 🎉")
+        cols = st.columns(3)
+        for i, photo_path in enumerate(st.session_state.found_photos):
+            with cols[i % 3]:
+                # Menampilkan foto dari memori
+                st.image(Image.open(photo_path), use_container_width=True) 
+                
+                # Tombol Download (Akan tetap stay karena berada di luar if st.button cari)
+                with open(photo_path, "rb") as file:
+                    st.download_button(
+                        label="📥 Download Foto",
+                        data=file,
+                        file_name=os.path.basename(photo_path),
+                        mime="image/jpeg",
+                        key=f"download_{i}"  
+                    )
+    else:
+        st.error(f"Maaf, foto dengan nomor bib '{st.session_state.last_query}' tidak ditemukan setelah memindai seluruh dataset.")
