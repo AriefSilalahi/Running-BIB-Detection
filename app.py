@@ -6,7 +6,7 @@ from ultralytics import YOLO
 from PIL import Image
 
 st.set_page_config(page_title="Running Bib Finder", layout="wide")
-st.title("跑 Running Bib Finder")
+st.title("🏃 Running BIB Finder")
 st.write("Sistem pencarian dokumentasi foto lari otomatis berbasis YOLOv11 & OCR.")
 st.write("By. Arief Daniel A. Silalahi")
 
