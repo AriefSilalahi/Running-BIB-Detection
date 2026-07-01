@@ -6,9 +6,9 @@ from ultralytics import YOLO
 from PIL import Image
 
 st.set_page_config(page_title="Running Bib Finder", layout="wide")
-st.title("🏃‍♂️ Running Bib Finder")
+st.title("跑 Running Bib Finder")
 st.write("Sistem pencarian dokumentasi foto lari otomatis berbasis YOLOv11 & OCR.")
-st.write("By.Arief Daniel A.Silalahi")
+st.write("By. Arief Daniel A. Silalahi")
 
 @st.cache_resource
 def load_models():
@@ -67,7 +67,18 @@ if st.button("Cari Foto Saya!"):
             cols = st.columns(3)
             for i, photo_path in enumerate(found_photos):
                 with cols[i % 3]:
+                    # 1. Menampilkan foto di web
                     st.image(Image.open(photo_path), use_container_width=True) 
+                    
+                    # 2. Fitur Tambahan: Tombol Download Foto
+                    with open(photo_path, "rb") as file:
+                        st.download_button(
+                            label="📥 Download Foto",
+                            data=file,
+                            file_name=os.path.basename(photo_path),
+                            mime="image/jpeg",
+                            key=f"download_{i}"  # Key unik berdasarkan indeks perulangan
+                        )
         else:
             st.error("Maaf, foto dengan nomor bib tersebut tidak ditemukan setelah memindai seluruh dataset.")
     else:
