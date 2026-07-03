@@ -1,5 +1,5 @@
 streamlit
-opencv-python-headless
-easyocr
 ultralytics
+easyocr
+opencv-python-headless
 Pillow
